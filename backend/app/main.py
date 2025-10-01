@@ -1,5 +1,7 @@
+import os
 from typing import List
 
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
@@ -7,6 +9,8 @@ from sqlalchemy.orm import Session
 
 from . import crud, models, schemas, security
 from .database import engine, get_db
+
+load_dotenv()
 
 # Create all database tables on startup (if they don't already exist).
 models.Base.metadata.create_all(bind=engine)
@@ -20,6 +24,11 @@ origins = [
     "http://localhost:5173", # Default Vite dev server port.
     "http://localhost:3000", # Default Create React App port.
 ]
+
+CLIENT_ORIGIN_URL = os.getenv("CLIENT_ORIGIN_URL")
+
+if CLIENT_ORIGIN_URL:
+    origins.append(CLIENT_ORIGIN_URL)
 
 app.add_middleware(
     CORSMiddleware,
