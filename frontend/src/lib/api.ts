@@ -5,43 +5,49 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 
 // A private helper function to handle the core fetch logic.
-const request = async (endpoint: string, options: RequestInit = {}) => {
-    const token = localStorage.getItem('authToken');
+const request = async (endpoint: string, options: RequestInit = {}, noAuth: boolean = false) => {
+     // Use the URL constructor for robust URL joining, preventing double slashes.
+    const url = new URL(endpoint, API_BASE_URL).href;
     
     // Default headers for all requests.
-    const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-    };
+    const headers: Record<string, string> = {};
 
-    // Add the Authorization header if a token exists.
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+    if (options.body) {
+        headers['Content-Type'] = 'application/json';
     }
 
-    // Merge default options with any custom options passed in.
+    // Add the Authorization header if a token exists and the route is not public.
+    if (!noAuth) {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+    }
+
     const config: RequestInit = {
         ...options,
         headers: { ...headers, ...options.headers },
     };
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    const response = await fetch(url, config);
 
     // If the response is not OK, parse the error detail from the backend.
     if (!response.ok) {
-        // Handle cases where the response body might not be JSON.
         try {
             const errorData = await response.json();
             throw new Error(errorData.detail || `Request failed with status ${response.status}`);
         } catch (e) {
+            // Fallback for non-JSON error responses.
             throw new Error(`Request failed with status ${response.status}`);
         }
     }
   
-    // If the response is OK, parse and return the JSON body.
-    // Handle 204 No Content responses which have no body.
+    // Handle 204 No Content responses which have no body, returning null.
     if (response.status === 204) {
         return null;
     }
+    
+    // For successful responses, parse and return the JSON body.
     return response.json();
 };
 
@@ -52,31 +58,33 @@ export const api = {
     },
 
     post: (endpoint: string, body: unknown) => {
-        return request(endpoint, { method: 'POST', body: JSON.stringify(body) });
+        return request(endpoint, { 
+            method: 'POST',
+            body: JSON.stringify(body) 
+        });
     },
 
     put: (endpoint: string, body: unknown) => {
-        return request(endpoint, { method: 'PUT', body: JSON.stringify(body) });
+        return request(endpoint, { 
+            method: 'PUT',
+            body: JSON.stringify(body)
+        });
     },
 
     delete: (endpoint: string) => {
         return request(endpoint, { method: 'DELETE' });
     },
     
-    // Special method for the token endpoint which uses form data
-    async login(formData: URLSearchParams) {
-        // We don't use the main `request` helper here because the content type and body are different.
-        const response = await fetch(`${API_BASE_URL}/token`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData.toString(),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Login failed');
-        }
-
-        return response.json();
+    // The special login method now reuses the generic `request` helper.
+    login: (formData: URLSearchParams) => {
+        return request(
+            '/token',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            },
+            true
+        );
     },
 };
