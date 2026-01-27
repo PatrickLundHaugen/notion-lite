@@ -46,8 +46,9 @@ def create_app() -> FastAPI:
     
     # Configure CORS
     origins = [
-        "http://localhost:5173",  # Vite dev server
-        "http://localhost:3000",  # Create React App
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://pats-notes.vercel.app",
     ]
     
     if settings.client_origin_url:
