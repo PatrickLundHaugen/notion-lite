@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
 import { api } from "@/lib/api";
-import type { Page } from "@/components/notes/types";
+import type { Page } from "@/components/editor/types";
 
 export type PageContextType = {
   pages: Page[];

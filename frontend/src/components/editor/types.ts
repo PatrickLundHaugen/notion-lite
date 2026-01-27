@@ -1,6 +1,10 @@
 import type { Editor, Range } from '@tiptap/react';
 import type { LucideIcon } from 'lucide-react';
+import type { SuggestionProps as TiptapSuggestionProps } from '@tiptap/suggestion';
 import type { TagData } from '@/components/tags/types';
+
+// Re-export Tiptap's SuggestionProps
+export type SuggestionProps = TiptapSuggestionProps;
 
 // Page types (existing)
 export interface Page {
@@ -48,13 +52,6 @@ export type CalloutVariant = 'info' | 'warning' | 'success' | 'error' | 'note';
 
 export interface CalloutAttributes {
   variant: CalloutVariant;
-}
-
-// Suggestion props type for slash commands
-export interface SuggestionProps {
-  editor: Editor;
-  range: Range;
-  clientRect: (() => DOMRect | null) | null;
 }
 
 // Slash command renderer interface
