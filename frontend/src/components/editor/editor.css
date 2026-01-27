@@ -1,0 +1,230 @@
+/* Required ProseMirror style */
+.ProseMirror {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Editor typography */
+.noteflow-editor {
+  font-family: "Satoshi", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--foreground);
+}
+
+/* Placeholder — italic, muted */
+.noteflow-editor p.is-empty:first-child::before,
+.noteflow-editor .is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--muted-foreground);
+  font-style: italic;
+  opacity: 0.6;
+}
+
+/* Don't show placeholder in callouts */
+.noteflow-editor [data-type="callout"] .is-empty::before {
+  content: none;
+}
+
+/* Headings — tight, architectural */
+.noteflow-editor h1,
+.noteflow-editor h2,
+.noteflow-editor h3 {
+  font-family: "Satoshi", system-ui, sans-serif;
+  color: var(--foreground);
+}
+
+.noteflow-editor h1 {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 48px 0 16px;
+}
+
+.noteflow-editor h2 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin: 40px 0 12px;
+}
+
+.noteflow-editor h3 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin: 32px 0 12px;
+  color: var(--muted-foreground);
+}
+
+.noteflow-editor h1:first-child,
+.noteflow-editor h2:first-child,
+.noteflow-editor h3:first-child {
+  margin-top: 0;
+}
+
+/* Paragraphs */
+.noteflow-editor p {
+  margin: 0 0 1em;
+}
+
+/* Text formatting — sharp, no roundness */
+.noteflow-editor mark {
+  background: var(--tag-yellow);
+  color: #1C1917;
+  padding: 0 0.2em;
+}
+
+.noteflow-editor code {
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  font-size: 0.875em;
+  padding: 0.15em 0.4em;
+  background: var(--muted);
+  border: 1px solid var(--border);
+}
+
+/* Blockquotes — left border, no curve */
+.noteflow-editor blockquote {
+  margin: 24px 0;
+  padding: 0 0 0 24px;
+  border-left: 3px solid var(--foreground);
+  font-style: italic;
+  color: var(--muted-foreground);
+}
+
+.noteflow-editor blockquote p {
+  margin: 0;
+}
+
+/* Lists */
+.noteflow-editor ul {
+  list-style-type: disc;
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+
+.noteflow-editor ol {
+  list-style-type: decimal;
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+
+.noteflow-editor li {
+  margin: 0.25em 0;
+  display: list-item;
+}
+
+.noteflow-editor li p {
+  margin: 0;
+}
+
+/* Nested lists */
+.noteflow-editor ul ul,
+.noteflow-editor ol ul {
+  list-style-type: circle;
+}
+
+.noteflow-editor ul ul ul,
+.noteflow-editor ol ul ul {
+  list-style-type: square;
+}
+
+/* Task List — sharp checkboxes */
+.noteflow-editor ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.noteflow-editor ul[data-type='taskList'] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.noteflow-editor ul[data-type='taskList'] li > label {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.noteflow-editor ul[data-type='taskList'] li > div {
+  flex: 1;
+}
+
+.noteflow-editor ul[data-type='taskList'] input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--foreground);
+  border-radius: 0;
+}
+
+/* Horizontal Rule — thick, architectural */
+.noteflow-editor hr {
+  border: none;
+  height: 2px;
+  background: var(--foreground);
+  margin: 48px 0;
+}
+
+/* Code Blocks — no radius, bordered */
+.noteflow-editor pre {
+  margin: 24px 0;
+  padding: 20px 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.noteflow-editor pre code {
+  padding: 0;
+  background: transparent;
+  border: none;
+  font-size: inherit;
+}
+
+/* Syntax Highlighting — muted, professional */
+.noteflow-editor .hljs-comment { 
+  color: var(--muted-foreground); 
+  font-style: italic; 
+}
+.noteflow-editor .hljs-keyword { color: var(--tag-purple); }
+.noteflow-editor .hljs-string { color: var(--tag-green); }
+.noteflow-editor .hljs-number { color: var(--tag-orange); }
+.noteflow-editor .hljs-function,
+.noteflow-editor .hljs-title { color: var(--tag-blue); }
+.noteflow-editor .hljs-variable,
+.noteflow-editor .hljs-attr { color: var(--tag-red); }
+
+/* Images — no radius */
+.noteflow-editor img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 24px 0;
+  border: 1px solid var(--border);
+}
+
+/* Selection */
+.noteflow-editor ::selection {
+  background: var(--tag-blue);
+  color: #FAFAF9;
+}
+
+/* Links */
+.noteflow-editor a {
+  color: var(--tag-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.noteflow-editor a:hover {
+  color: var(--foreground);
+}

@@ -1,28 +1,41 @@
-import os
+"""
+Database connection and session management.
+"""
+
+from typing import Generator
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from dotenv import load_dotenv
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
-load_dotenv()
+from .config import settings
 
-# Use DATABASE_URL from environment, falling back to a local SQLite DB for development.
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./sql_app.db")
+# Configure database engine based on environment
+if settings.database_url.startswith("sqlite"):
+    engine = create_engine(
+        settings.database_url,
+        connect_args={"check_same_thread": False}
+    )
+else:
+    # PostgreSQL or other production database
+    engine = create_engine(
+        settings.database_url,
+        pool_pre_ping=True,
+        pool_size=5,
+        max_overflow=10
+    )
 
-# The engine is the entry point to the database.
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    # `connect_args` is a SQLite-specific option to allow multi-threaded access.
-    connect_args={"check_same_thread": False} if SQLALCHEMY_DATABASE_URL.startswith("sqlite") else {},
-)
-
-# Each instance of SessionLocal will be a database session.
+# Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class for our ORM models to inherit from.
+# Base class for ORM models
 Base = declarative_base()
 
-def get_db():
-    # FastAPI dependency that provides a database session per request.
+
+def get_db() -> Generator[Session, None, None]:
+    """
+    FastAPI dependency that provides a database session per request.
+    Automatically closes the session when the request completes.
+    """
     db = SessionLocal()
     try:
         yield db

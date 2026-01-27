@@ -1,4 +1,4 @@
-# Notion Lite
+# Pat's Notes
 
 A lightweight, fast, and open-source alternative to Notion, built with FastAPI and React. This project was developed as a full-stack learning exercise to gain a deeper understanding of modern web development, from backend API design to frontend state management.
 

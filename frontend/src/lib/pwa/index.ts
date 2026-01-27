@@ -1,0 +1,1 @@
+export { pwaManager, type PWAState } from './register';

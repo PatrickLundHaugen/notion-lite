@@ -1,95 +1,118 @@
-import os
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+"""
+Authentication and security utilities.
 
-from dotenv import load_dotenv
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+Features:
+- Password hashing with bcrypt
+- JWT token creation with type discrimination
+- Token validation
+"""
+
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session
 
-from . import crud
-from .database import get_db
+from .config import settings
 
-class AuthConfig:
-    # Loads sensitive configuration from environment variables (.env file).
-    # Fails fast on startup if any required variables are missing.
-    def __init__(self):
-        load_dotenv()
-        
-        secret_key = os.getenv("SECRET_KEY")
-        if not secret_key:
-            raise ValueError("Missing SECRET_KEY environment variable")
-        self.SECRET_KEY = secret_key
 
-        algorithm = os.getenv("ALGORITHM")
-        if not algorithm:
-            raise ValueError("Missing ALGORITHM environment variable")
-        self.ALGORITHM = algorithm
+class TokenType(str, Enum):
+    """Token type discriminator to prevent token confusion attacks."""
+    ACCESS = "access"
+    REFRESH = "refresh"
 
-        expire_minutes_str = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
-        if not expire_minutes_str:
-            raise ValueError("Missing ACCESS_TOKEN_EXPIRE_MINUTES environment variable")
-        self.ACCESS_TOKEN_EXPIRE_MINUTES = int(expire_minutes_str)
 
-# A single, global instance of the AuthConfig.
-auth_config = AuthConfig()
-
-# Defines the password hashing context, using bcrypt as the scheme.
+# Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Tells FastAPI how to find the token in a request. `tokenUrl` points to our login endpoint.
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # Verifies a plain text password against a stored hash.
+    """Verify a plain text password against a stored hash."""
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
-    # Generates a secure hash for a plain text password.
+    """Generate a secure bcrypt hash for a password."""
     return pwd_context.hash(password)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    # Creates a new JWT access token.
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=auth_config.ACCESS_TOKEN_EXPIRE_MINUTES)
-        
-    to_encode.update({"exp": expire})
+def create_access_token(subject: str) -> str:
+    """
+    Create a new JWT access token.
     
-    encoded_jwt = jwt.encode(
-        to_encode, 
-        auth_config.SECRET_KEY, 
-        algorithm=auth_config.ALGORITHM
+    Args:
+        subject: The token subject (typically username)
+        
+    Returns:
+        Encoded JWT string
+    """
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.access_token_expire_minutes
     )
-    return encoded_jwt
+    
+    payload = {
+        "sub": subject,
+        "exp": expire,
+        "type": TokenType.ACCESS.value,
+        "iat": datetime.now(timezone.utc),
+    }
+    
+    return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
-def get_current_user(
-    db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
-):
-    # FastAPI dependency to decode a JWT and fetch the corresponding user from the DB.
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+
+def create_refresh_token(subject: str) -> str:
+    """
+    Create a new JWT refresh token.
+    
+    Args:
+        subject: The token subject (typically username)
+        
+    Returns:
+        Encoded JWT string
+    """
+    expire = datetime.now(timezone.utc) + timedelta(
+        days=settings.refresh_token_expire_days
     )
+    
+    payload = {
+        "sub": subject,
+        "exp": expire,
+        "type": TokenType.REFRESH.value,
+        "iat": datetime.now(timezone.utc),
+    }
+    
+    return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
+
+
+def decode_token(token: str, expected_type: TokenType) -> str | None:
+    """
+    Decode and validate a JWT token.
+    
+    Args:
+        token: The JWT token string
+        expected_type: The expected token type (access or refresh)
+        
+    Returns:
+        The subject (username) if valid, None otherwise
+    """
     try:
         payload = jwt.decode(
-            token, auth_config.SECRET_KEY, algorithms=[auth_config.ALGORITHM]
+            token,
+            settings.secret_key,
+            algorithms=[settings.algorithm]
         )
-        subject = payload.get("sub")
+        
+        # Validate token type
+        token_type = payload.get("type")
+        if token_type != expected_type.value:
+            return None
+        
+        # Extract subject
+        subject: str | None = payload.get("sub")
         if subject is None or not isinstance(subject, str):
-            raise credentials_exception
-        username: str = subject
+            return None
+            
+        return subject
+        
     except JWTError:
-        raise credentials_exception
-    
-    user = crud.get_user_by_username(db, username=username)
-    if user is None:
-        raise credentials_exception
-    return user
+        return None

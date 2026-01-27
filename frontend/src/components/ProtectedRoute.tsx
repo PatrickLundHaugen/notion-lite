@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/components/auth/context/useAuth';
 
 // This component acts as a gatekeeper for routes that require authentication.
 function ProtectedRoute() {
