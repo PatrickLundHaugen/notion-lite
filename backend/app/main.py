@@ -51,9 +51,6 @@ def create_app() -> FastAPI:
         "https://pats-notes.vercel.app",
     ]
     
-    if settings.client_origin_url:
-        origins.append(settings.client_origin_url)
-    
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
