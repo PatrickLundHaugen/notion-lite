@@ -180,7 +180,6 @@ export default function Editor() {
                             pageId={page.id}
                             tags={tags}
                             onTagsChange={setTags}
-                            onTagsUpdated={refreshSidebar}
                         />
                     </div>
                 )}
