@@ -13,7 +13,6 @@ type PageContextType = {
     error: string | null;
 };
 
-// Flatten pages to get all notes including children
 function flattenPages(pages: Page[]): Page[] {
     return pages.reduce<Page[]>((acc, page) => {
         acc.push(page);
@@ -63,11 +62,6 @@ export default function Dashboard() {
         fuchsia: 'bg-tag-fuchsia',
     };
 
-    const getTagColorClass = (page: Page) => {
-        const color = page.tags?.[0]?.color ?? 'fuchsia';
-        return TAG_COLOR_CLASS[color] ?? TAG_COLOR_CLASS.fuchsia;
-    };
-
     return (
         <div className="grid grid-cols-6 md:grid-cols-12 flex-1 mt-4">
             <div className="col-span-3 md:col-span-6 flex flex-col justify-between">
@@ -77,22 +71,33 @@ export default function Dashboard() {
                     </h2>
 
                     {recentPages.length > 0 ? (
-                        <div className="grid grid-cols-2 col-span-6">
+                        <div className="grid col-span-6 gap-y-4">
                             {recentPages.slice(0, 4).map((page) => (
                                 <Link
                                     key={page.id}
                                     to={`/pages/${page.slug}`}
-                                    className="group"
+                                    className="group flex flex-col"
                                 >
-                                    <div className={`size-4 ${getTagColorClass(page)}`} />
+                                    {page.tags && page.tags.length > 0 && (
+                                        <div className="flex flex-wrap">
+                                            {page.tags.map((tag, index) => (
+                                                <div
+                                                    key={`${page.id}-tag-${index}`}
+                                                    className={`size-4 ${TAG_COLOR_CLASS[tag.color] ?? TAG_COLOR_CLASS.fuchsia}`}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
 
-                                    <h3 className="text-base font-semibold">
-                                        {page.title || 'Untitled'}
-                                    </h3>
+                                    <div>
+                                        <h3 className="text-base font-semibold group-hover:underline">
+                                            {page.title || 'Untitled'}
+                                        </h3>
 
-                                    <p className="text-xs font-medium text-muted-foreground">
-                                        {formatDistanceToNow(new Date(page.updated_at), { addSuffix: true })}
-                                    </p>
+                                        <p className="text-xs font-medium text-muted-foreground">
+                                            {formatDistanceToNow(new Date(page.updated_at), { addSuffix: true })}
+                                        </p>
+                                    </div>
                                 </Link>
                             ))}
                         </div>
@@ -122,7 +127,6 @@ export default function Dashboard() {
                 ))}
                 <div>
                     <OnlineIndicator showLabel={true} />
-
                     <AIStatusIndicator />
                 </div>
             </div>

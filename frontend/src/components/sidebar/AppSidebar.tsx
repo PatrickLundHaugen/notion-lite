@@ -244,7 +244,6 @@ export function AppSidebar({ pages, isLoading, onNewPage, onMovePage, refreshKey
     return (
         <Sidebar collapsible="offcanvas">
             <SidebarContent>
-                {/* Dashboard Section */}
                 <SidebarGroup>
                     <SidebarMenu>
                         <SidebarMenuItem>
@@ -259,7 +258,7 @@ export function AppSidebar({ pages, isLoading, onNewPage, onMovePage, refreshKey
 
                 <SidebarGroup className="h-full">
                     <div className="flex items-center justify-between">
-                        <SidebarGroupLabel className="p-2">
+                        <SidebarGroupLabel>
                             Notes
                         </SidebarGroupLabel>
                         <Button variant="ghost" size="icon" onClick={() => onNewPage()}>
